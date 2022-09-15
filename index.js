@@ -16,15 +16,17 @@
  * 
  */
 
+const gameBoardElement = document.querySelector("#game-board");
+
 
 const gameBoard = (function() {
     let gameBoardSquares = [];
     const xCoordinateArray = [1, 2, 3];
     const yCoordinateArray = ["A","B","C"];
 
-    for (y = 0; y < yCoordinateArray.length; y++) {
+    for (let y = 0; y < yCoordinateArray.length; y++) {
 
-        for (x = 0; x < xCoordinateArray.length; x++) {
+        for (let x = 0; x < xCoordinateArray.length; x++) {
             const boardSquare = {
                 xCoordinate: xCoordinateArray[x],
                 yCoordinate: yCoordinateArray[y],
@@ -33,11 +35,22 @@ const gameBoard = (function() {
         };
     };
 
-    function getSquares() {
-        console.table(gameBoardSquares);
+    function createDisplay() {
+        for (let i = 0; i < gameBoardSquares.length; i++) {
+            const boardSquareElement = document.createElement("div");
+            boardSquareElement.classList.add("board-square");
+   
+            boardSquareElement.addEventListener("click", (e) => {
+                
+                // for the player's move, add the object's coordinate properties to the player's arrays.
+                console.log(`The X coordinate is ${gameBoardSquares[i].xCoordinate}, and the Y coordinate is ${gameBoardSquares[i].yCoordinate}.`);
+            });
+
+            gameBoardElement.appendChild(boardSquareElement);
+        };
     };
 
-    return { getSquares };
+    return { createDisplay };
 })();
 
-gameBoard.getSquares();
+gameBoard.createDisplay();

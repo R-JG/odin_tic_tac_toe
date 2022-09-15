@@ -1,0 +1,30 @@
+* {
+    --board-square-size: 200px;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.board-square {
+    height: var(--board-square-size);
+    width: var(--board-square-size);
+    background-color: lightsalmon;
+    border-width: 2px;
+    border-style: solid;
+    border-color: darkorange;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-board {
+    height: calc(var(--board-square-size) * 3);
+    width: calc(var(--board-square-size) * 3);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
