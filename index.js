@@ -16,10 +16,27 @@
  * 
  */
 
-const gameBoardElement = document.querySelector("#game-board");
+const winScenarios = {
+    horizontalA: ["A1", "A2", "A3"],
+    horizontalB: ["B1", "B2", "B3"],
+    horizontalC: ["C1", "C2", "C3"],
+    verticalOne: ["A1", "B1", "C1"],
+    verticalTwo: ["A2", "B2", "C2"],
+    verticalThree: ["A3", "B3", "C3"],
+    diagonalFirst: ["A1", "B2", "C3"],
+    diagonalSecond: ["A3", "B2", "C1"],
+}
+// is there a way to constrain the possible win scenarios based on the coordinates of a given square object?
+
+
+const newPlayer = function() {
+    let moves = [];
+    return { moves };
+}
 
 
 const gameBoard = (function() {
+
     let gameBoardSquares = [];
     const xCoordinateArray = [1, 2, 3];
     const yCoordinateArray = ["A","B","C"];
@@ -36,14 +53,15 @@ const gameBoard = (function() {
     };
 
     function createDisplay() {
+
+        const gameBoardElement = document.querySelector("#game-board");
+
         for (let i = 0; i < gameBoardSquares.length; i++) {
             const boardSquareElement = document.createElement("div");
             boardSquareElement.classList.add("board-square");
    
             boardSquareElement.addEventListener("click", (e) => {
-                
-                // for the player's move, add the object's coordinate properties to the player's arrays.
-                console.log(`The X coordinate is ${gameBoardSquares[i].xCoordinate}, and the Y coordinate is ${gameBoardSquares[i].yCoordinate}.`);
+                playerMove(playerOne, gameBoardSquares[i].xCoordinate, gameBoardSquares[i].yCoordinate);
             });
 
             gameBoardElement.appendChild(boardSquareElement);
@@ -53,4 +71,21 @@ const gameBoard = (function() {
     return { createDisplay };
 })();
 
+function playerMove(player, xCoordinate, yCoordinate) {
+    const move = yCoordinate + xCoordinate;
+    player.moves.push(move);
+
+    // check if the player meets one of the win conditions:
+    for (coordiantes in winScenarios) {
+        if (winScenarios[coordiantes].every((coordinate) => player.moves.includes(coordinate))) {
+            console.log("you win!")
+            break;
+        };
+    };
+};
+
+
+
 gameBoard.createDisplay();
+
+let playerOne = newPlayer();
