@@ -4,6 +4,7 @@
 
 body {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -27,4 +28,8 @@ body {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+}
+
+#info-bar {
+    height: 150px;
 }
