@@ -14,7 +14,9 @@ const newPlayer = function(newName, symbolChar) {
     let symbol = symbolChar;
     let moves = [];
     let wins = 0;
-    return { name, symbol, moves, wins };
+    let ties = 0;
+    let losses = 0;
+    return { name, symbol, moves, wins, ties, losses };
 };
 
 const gameBoard = (function() {
@@ -63,22 +65,38 @@ const gameBoard = (function() {
 
 const gameState = (function() {
     const gameBoardElement = document.querySelector("#game-board");
+    const promptElement = document.querySelector("#prompt");
+    const playAgainButton = document.querySelector("#play-again-button");
+    const turnEndEvent = new Event("turn-end");
+    const winEvent = new Event("win");
+    let turnCount = 0;
+    let roundOver = false;
     let playerOne;
     let playerTwo;
     let activePlayer;
+    let inactivePlayer;
 
     function initializeGame() {
         const startButton = document.querySelector("#start-button");
+        const pOneNameElement = document.querySelector(".player-one .title");
+        const pTwoNameElement = document.querySelector(".player-two .title");
+
         startButton.addEventListener("click", (e) => {
             const playerOneName = prompt("Enter a name for player 1:");
             const playerTwoName = prompt("Enter a name for player 2:");
+            pOneNameElement.textContent += playerOneName;
+            pTwoNameElement.textContent += playerTwoName;
     
             playerOne = newPlayer(playerOneName, "X");
             playerTwo = newPlayer(playerTwoName, "O");
             activePlayer = playerOne;
+            inactivePlayer = playerTwo;
     
             startButton.style.display = "none";
+            gameBoardElement.style.display = "flex";
             gameBoard.createDisplay();
+
+            promptElement.textContent = `${activePlayer.name}'s turn`;
         });
         return new Promise((resolve) => {
             startButton.onclick = () => resolve();
@@ -86,8 +104,6 @@ const gameState = (function() {
     };
 
     function playerMove(xCoordinate, yCoordinate) {
-        let roundOver = false;
-
         const selectedSquare = gameBoard.gameBoardSquares.find(
             square => (square.xCoordinate === xCoordinate) && (square.yCoordinate === yCoordinate)
         );
@@ -100,36 +116,74 @@ const gameState = (function() {
         activePlayer.moves.push(move);
         selectedSquare.playerSymbol = activePlayer.symbol;
     
-        //test
-        console.log(`activePlayer ${activePlayer.name}: ${activePlayer.moves}`);
-        console.log(`playerOne ${playerOne.name}: ${playerOne.moves}`);
-        console.log(`playerTwo ${playerTwo.name}: ${playerTwo.moves}`);
-    
         // check if the active player meets one of the win conditions:
         for (scenario in winScenarios) {
             if (winScenarios[scenario].every((coordinate) => activePlayer.moves.includes(coordinate))) {
                 activePlayer.wins++;
+                inactivePlayer.losses++;
                 roundOver = true;
-                console.log(`${activePlayer.name} wins!`);
-                console.log(`${activePlayer.wins}`);
-
-                gameBoardElement.style.display = "none";
+                gameBoardElement.dispatchEvent(winEvent);
                 break;
             };
         };
 
-        // alternate player one and two's turns if the move does not result in a win:
+        // if the move does not result in a win, dispatch the turn end event and alternate player one and two as the active player:
         if (!roundOver) {
             switch (activePlayer) {
                 case playerOne: 
                     activePlayer = playerTwo;
+                    inactivePlayer = playerOne;
                     break;
                 case playerTwo:
                     activePlayer = playerOne;
+                    inactivePlayer = playerTwo;
             };
+            gameBoardElement.dispatchEvent(turnEndEvent);
         };
     };
-    return { playerOne, playerTwo, activePlayer, initializeGame, playerMove };
+
+    function newRound() {
+        
+    };
+
+    // turn end / tie event: (upon nine turn end events without a win, trigger the tie end game scenario) 
+    gameBoardElement.addEventListener("turn-end", (e) => {
+        turnCount++;
+        if (turnCount >= 9) {
+            const pOneTiesElement = document.querySelector(".player-one .ties");
+            const pTwoTiesElement = document.querySelector(".player-two .ties");
+            playerOne.ties++;
+            playerTwo.ties++;
+            pOneTiesElement.textContent = `Ties: ${playerOne.ties}`;
+            pTwoTiesElement.textContent = `Ties: ${playerTwo.ties}`;
+            promptElement.textContent = "It's a tie!";
+            gameBoardElement.style.display = "none";
+            playAgainButton.style.display = "flex";
+        } else {
+            promptElement.textContent = `${activePlayer.name}'s turn`;
+        };
+    });
+
+    // win event:
+    gameBoardElement.addEventListener("win", (e) => {
+        const pOneWinsElement = document.querySelector(".player-one .wins");
+        const pOneLossesElement = document.querySelector(".player-one .losses");
+        const pTwoWinsElement = document.querySelector(".player-two .wins");
+        const pTwoLossesElement = document.querySelector(".player-two .losses");
+        pOneWinsElement.textContent = `Wins: ${playerOne.wins}`;
+        pOneLossesElement.textContent = `Losses: ${playerOne.losses}`;
+        pTwoWinsElement.textContent = `Wins: ${playerTwo.wins}`;
+        pTwoLossesElement.textContent = `Losses: ${playerTwo.losses}`;
+        promptElement.textContent = `${activePlayer.name} wins!`;
+        gameBoardElement.style.display = "none";
+        playAgainButton.style.display = "flex";
+    });
+
+    playAgainButton.addEventListener("click", (e) => {
+
+    });
+
+    return { initializeGame, playerMove };
 })();
 
 async function main() {
