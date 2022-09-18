@@ -9,11 +9,12 @@ const winScenarios = {
     diagonalSecond: ["A3", "B2", "C1"],
 };
 
-const newPlayer = function(newName) {
+const newPlayer = function(newName, symbolChar) {
     let name = newName;
+    let symbol = symbolChar;
     let moves = [];
     let wins = 0;
-    return { name, moves, wins };
+    return { name, symbol, moves, wins };
 };
 
 const gameBoard = (function() {
@@ -27,6 +28,7 @@ const gameBoard = (function() {
             const boardSquare = {
                 xCoordinate: xCoordinateArray[x],
                 yCoordinate: yCoordinateArray[y],
+                playerSymbol: "",
             };
             gameBoardSquares.push(boardSquare);
         };
@@ -39,17 +41,28 @@ const gameBoard = (function() {
             const boardSquareElement = document.createElement("div");
             boardSquareElement.classList.add("board-square");
     
+            // on a click of the square, call the gameState method that handles the move stage, and then update the element's text to the player's symbol
             boardSquareElement.addEventListener("click", (e) => {
                 gameState.playerMove(gameBoardSquares[i].xCoordinate, gameBoardSquares[i].yCoordinate);
+                boardSquareElement.textContent = gameBoardSquares[i].playerSymbol;
+                // make the color different according to the symbol:
+                switch (boardSquareElement.textContent) {
+                    case "X":
+                        boardSquareElement.style.color = "brown";
+                        break;
+                    case "O":
+                        boardSquareElement.style.color = "darkslateblue";
+                }
             });
     
             gameBoardElement.appendChild(boardSquareElement);
         };
     };
-    return { createDisplay };
+    return { gameBoardSquares, createDisplay };
 })();
 
 const gameState = (function() {
+    const gameBoardElement = document.querySelector("#game-board");
     let playerOne;
     let playerTwo;
     let activePlayer;
@@ -60,18 +73,32 @@ const gameState = (function() {
             const playerOneName = prompt("Enter a name for player 1:");
             const playerTwoName = prompt("Enter a name for player 2:");
     
-            playerOne = newPlayer(playerOneName);
-            playerTwo = newPlayer(playerTwoName);
+            playerOne = newPlayer(playerOneName, "X");
+            playerTwo = newPlayer(playerTwoName, "O");
             activePlayer = playerOne;
     
             startButton.style.display = "none";
             gameBoard.createDisplay();
         });
+        return new Promise((resolve) => {
+            startButton.onclick = () => resolve();
+        });
     };
 
     function playerMove(xCoordinate, yCoordinate) {
+        let roundOver = false;
+
+        const selectedSquare = gameBoard.gameBoardSquares.find(
+            square => (square.xCoordinate === xCoordinate) && (square.yCoordinate === yCoordinate)
+        );
+
+        // if the square has already been claimed, return:
+        if (selectedSquare.playerSymbol != "") return;
+
+        // add the square's corrdinates to the player's moves array, and place their symbol on the square:
         const move = yCoordinate + xCoordinate;
         activePlayer.moves.push(move);
+        selectedSquare.playerSymbol = activePlayer.symbol;
     
         //test
         console.log(`activePlayer ${activePlayer.name}: ${activePlayer.moves}`);
@@ -81,30 +108,33 @@ const gameState = (function() {
         // check if the active player meets one of the win conditions:
         for (scenario in winScenarios) {
             if (winScenarios[scenario].every((coordinate) => activePlayer.moves.includes(coordinate))) {
+                activePlayer.wins++;
+                roundOver = true;
                 console.log(`${activePlayer.name} wins!`);
+                console.log(`${activePlayer.wins}`);
+
+                gameBoardElement.style.display = "none";
                 break;
             };
         };
-    };
 
+        // alternate player one and two's turns if the move does not result in a win:
+        if (!roundOver) {
+            switch (activePlayer) {
+                case playerOne: 
+                    activePlayer = playerTwo;
+                    break;
+                case playerTwo:
+                    activePlayer = playerOne;
+            };
+        };
+    };
     return { playerOne, playerTwo, activePlayer, initializeGame, playerMove };
 })();
 
-function main() {
-    gameState.initializeGame();
+async function main() {
+    await gameState.initializeGame();
 
-    do {
-        console.log(`${gameState[activePlayer].name}, make a move!`);
-    
-        // alternate player one and two's turns:
-        switch (gameState.activePlayer) {
-            case gameState.playerOne: 
-                gameState.activePlayer = gameState.playerTwo;
-                break;
-            case gameState.playerTwo:
-                gameState.activePlayer = gameState.playerOne;
-        }
-    } while ((gameState[playerOne].wins === 0) && (gameState[playerTwo].wins === 0));
 };
 
 main();
