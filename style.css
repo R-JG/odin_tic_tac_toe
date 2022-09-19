@@ -16,6 +16,16 @@ button {
     margin: 10px;
     padding-inline: 10px;
     font-size: 24px;
+    color: darkslategrey;
+    background-color:lightslategrey;
+    border-width: 1px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: darkslategrey;
+}
+
+button:hover {
+    color: azure;
 }
 
 .board-square {

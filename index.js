@@ -19,20 +19,24 @@ const newPlayer = function(newName, symbolChar) {
     return { name, symbol, moves, wins, ties, losses };
 };
 
+// ----------------- game board module -----------------
+
 const gameBoard = (function() {
     let gameBoardSquares = [];
     const xCoordinateArray = [1, 2, 3];
     const yCoordinateArray = ["A","B","C"];
 
-    for (let y = 0; y < yCoordinateArray.length; y++) {
+    function createBoard() {
+        for (let y = 0; y < yCoordinateArray.length; y++) {
 
-        for (let x = 0; x < xCoordinateArray.length; x++) {
-            const boardSquare = {
-                xCoordinate: xCoordinateArray[x],
-                yCoordinate: yCoordinateArray[y],
-                playerSymbol: "",
+            for (let x = 0; x < xCoordinateArray.length; x++) {
+                const boardSquare = {
+                    xCoordinate: xCoordinateArray[x],
+                    yCoordinate: yCoordinateArray[y],
+                    playerSymbol: "",
+                };
+                gameBoardSquares.push(boardSquare);
             };
-            gameBoardSquares.push(boardSquare);
         };
     };
 
@@ -60,15 +64,20 @@ const gameBoard = (function() {
             gameBoardElement.appendChild(boardSquareElement);
         };
     };
-    return { gameBoardSquares, createDisplay };
+    return { gameBoardSquares, createBoard, createDisplay };
 })();
+
+// ----------------- game state module -----------------
 
 const gameState = (function() {
     const gameBoardElement = document.querySelector("#game-board");
     const promptElement = document.querySelector("#prompt");
+    const startButton = document.querySelector("#start-button");
     const playAgainButton = document.querySelector("#play-again-button");
+
     const turnEndEvent = new Event("turn-end");
     const winEvent = new Event("win");
+
     let turnCount = 0;
     let roundOver = false;
     let playerOne;
@@ -76,32 +85,7 @@ const gameState = (function() {
     let activePlayer;
     let inactivePlayer;
 
-    function initializeGame() {
-        const startButton = document.querySelector("#start-button");
-        const pOneNameElement = document.querySelector(".player-one .title");
-        const pTwoNameElement = document.querySelector(".player-two .title");
-
-        startButton.addEventListener("click", (e) => {
-            const playerOneName = prompt("Enter a name for player 1:");
-            const playerTwoName = prompt("Enter a name for player 2:");
-            pOneNameElement.textContent += playerOneName;
-            pTwoNameElement.textContent += playerTwoName;
-    
-            playerOne = newPlayer(playerOneName, "X");
-            playerTwo = newPlayer(playerTwoName, "O");
-            activePlayer = playerOne;
-            inactivePlayer = playerTwo;
-    
-            startButton.style.display = "none";
-            gameBoardElement.style.display = "flex";
-            gameBoard.createDisplay();
-
-            promptElement.textContent = `${activePlayer.name}'s turn`;
-        });
-        return new Promise((resolve) => {
-            startButton.onclick = () => resolve();
-        });
-    };
+    // --- methods ---
 
     function playerMove(xCoordinate, yCoordinate) {
         const selectedSquare = gameBoard.gameBoardSquares.find(
@@ -143,8 +127,55 @@ const gameState = (function() {
     };
 
     function newRound() {
-        
+        playerOne.moves = [];
+        playerTwo.moves = [];
+        gameBoard.gameBoardSquares = [];
+        gameBoardElement.replaceChildren();
+        playAgainButton.style.display = "none";
+
+        console.log(playerOne.moves);
+        console.log(playerTwo.moves);
+        console.log(gameBoard.gameBoardSquares);
+
+        activePlayer = playerOne;
+        inactivePlayer = playerTwo;
+        gameBoard.createBoard();
+        gameBoard.createDisplay();
+        gameBoardElement.style.display = "flex";
+        promptElement.textContent = `${activePlayer.name}'s turn`;
+
+        console.log(gameBoard.gameBoardSquares);
     };
+
+
+    // --- event listeners ---
+
+    startButton.addEventListener("click", (e) => {
+        const pOneNameElement = document.querySelector(".player-one .title");
+        const pTwoNameElement = document.querySelector(".player-two .title");
+        const playerOneName = prompt("Enter a name for player 1:");
+        const playerTwoName = prompt("Enter a name for player 2:");
+        pOneNameElement.textContent = playerOneName;
+        pTwoNameElement.textContent = playerTwoName;
+
+        playerOne = newPlayer(playerOneName, "X");
+        playerTwo = newPlayer(playerTwoName, "O");
+        activePlayer = playerOne;
+        inactivePlayer = playerTwo;
+        //test
+        console.log(playerOneName)
+        console.log(playerTwoName)
+        console.log(playerOne.name)
+        console.log(playerTwo.name)
+
+        gameBoard.createBoard();
+
+        startButton.style.display = "none";
+        gameBoardElement.style.display = "flex";
+        gameBoard.createDisplay();
+
+        promptElement.textContent = `${activePlayer.name}'s turn`;
+    });
 
     // turn end / tie event: (upon nine turn end events without a win, trigger the tie end game scenario) 
     gameBoardElement.addEventListener("turn-end", (e) => {
@@ -180,15 +211,8 @@ const gameState = (function() {
     });
 
     playAgainButton.addEventListener("click", (e) => {
-
+        newRound();
     });
 
-    return { initializeGame, playerMove };
+    return { playerMove };
 })();
-
-async function main() {
-    await gameState.initializeGame();
-
-};
-
-main();
