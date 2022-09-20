@@ -19,6 +19,7 @@ const newPlayer = function(newName, symbolChar) {
     return { name, symbol, moves, wins, ties, losses };
 };
 
+
 // ----------------- game board module -----------------
 
 const gameBoard = (function() {
@@ -35,7 +36,7 @@ const gameBoard = (function() {
                     yCoordinate: yCoordinateArray[y],
                     playerSymbol: "",
                 };
-                gameBoardSquares.push(boardSquare);
+                gameBoard.gameBoardSquares.push(boardSquare);
             };
         };
     };
@@ -50,7 +51,7 @@ const gameBoard = (function() {
             // on a click of the square, call the gameState method that handles the move stage, and then update the element's text to the player's symbol
             boardSquareElement.addEventListener("click", (e) => {
                 gameState.playerMove(gameBoardSquares[i].xCoordinate, gameBoardSquares[i].yCoordinate);
-                boardSquareElement.textContent = gameBoardSquares[i].playerSymbol;
+                boardSquareElement.textContent = gameBoard.gameBoardSquares[i].playerSymbol;
                 // make the color different according to the symbol:
                 switch (boardSquareElement.textContent) {
                     case "X":
@@ -99,7 +100,7 @@ const gameState = (function() {
         const move = yCoordinate + xCoordinate;
         activePlayer.moves.push(move);
         selectedSquare.playerSymbol = activePlayer.symbol;
-    
+
         // check if the active player meets one of the win conditions:
         for (scenario in winScenarios) {
             if (winScenarios[scenario].every((coordinate) => activePlayer.moves.includes(coordinate))) {
@@ -127,30 +128,28 @@ const gameState = (function() {
     };
 
     function newRound() {
+        roundOver = false;
+        turnCount = 0;
         playerOne.moves = [];
         playerTwo.moves = [];
-        gameBoard.gameBoardSquares = [];
-        gameBoardElement.replaceChildren();
-        playAgainButton.style.display = "none";
-
-        console.log(playerOne.moves);
-        console.log(playerTwo.moves);
-        console.log(gameBoard.gameBoardSquares);
-
         activePlayer = playerOne;
         inactivePlayer = playerTwo;
-        gameBoard.createBoard();
-        gameBoard.createDisplay();
-        gameBoardElement.style.display = "flex";
-        promptElement.textContent = `${activePlayer.name}'s turn`;
+        gameBoard.gameBoardSquares = [];
+        gameBoardElement.replaceChildren();
 
-        console.log(gameBoard.gameBoardSquares);
+        gameBoard.createBoard();
+        gameBoardElement.style.display = "flex";
+        gameBoard.createDisplay();
+        promptElement.textContent = `${activePlayer.name}'s turn`;
+        playAgainButton.style.display = "none";
     };
 
 
     // --- event listeners ---
 
     startButton.addEventListener("click", (e) => {
+        const pOneDivElement = document.querySelector(".player-one");
+        const pTwoDivElement = document.querySelector(".player-two");
         const pOneNameElement = document.querySelector(".player-one .title");
         const pTwoNameElement = document.querySelector(".player-two .title");
         const playerOneName = prompt("Enter a name for player 1:");
@@ -162,19 +161,15 @@ const gameState = (function() {
         playerTwo = newPlayer(playerTwoName, "O");
         activePlayer = playerOne;
         inactivePlayer = playerTwo;
-        //test
-        console.log(playerOneName)
-        console.log(playerTwoName)
-        console.log(playerOne.name)
-        console.log(playerTwo.name)
 
         gameBoard.createBoard();
-
-        startButton.style.display = "none";
-        gameBoardElement.style.display = "flex";
         gameBoard.createDisplay();
 
+        gameBoardElement.style.display = "flex";
+        startButton.style.display = "none";
         promptElement.textContent = `${activePlayer.name}'s turn`;
+        pOneDivElement.style.color = "brown";
+        pTwoDivElement.style.color = "darkslateblue";
     });
 
     // turn end / tie event: (upon nine turn end events without a win, trigger the tie end game scenario) 
